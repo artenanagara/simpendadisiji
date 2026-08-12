@@ -478,8 +478,35 @@
       justify-content: center;
     }
 
-    .visit-counter img {
+    .visit-badge {
+      display: none;
+      align-items: stretch;
       height: 20px;
+      border-radius: 3px;
+      overflow: hidden;
+      font-family: Verdana, Geneva, DejaVu Sans, sans-serif;
+      font-size: 11px;
+    }
+
+    .visit-badge.ready {
+      display: inline-flex;
+    }
+
+    .visit-badge-label,
+    .visit-badge-value {
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      color: #fff;
+    }
+
+    .visit-badge-label {
+      background: #555;
+    }
+
+    .visit-badge-value {
+      background: var(--green);
+      font-weight: 700;
     }
 
     /* ════════════════════════════════
@@ -774,7 +801,10 @@
         Pencegahan dan Pengendalian Penyakit(P3M)<br>
         &copy; 2026
         <div class="visit-counter">
-          <img id="visitCounterImg" alt="Jumlah kunjungan" />
+          <span class="visit-badge" id="visitBadge">
+            <span class="visit-badge-label">Kunjungan</span>
+            <span class="visit-badge-value" id="visitBadgeValue">…</span>
+          </span>
         </div>
       </footer>
 
@@ -783,11 +813,23 @@
   </div><!-- /page-container -->
 
   <script>
-    // ── Visit counter (hits.sh, mengikuti domain halaman ini otomatis) ──
+    // ── Visit counter: 246 (kunjungan sebelum tanggal 2026-08-12) + real-time ──
     (function () {
-      var key = location.hostname + location.pathname;
-      var img = document.getElementById('visitCounterImg');
-      img.src = 'https://hits.sh/' + key + '.svg?label=Kunjungan&color=4dbfaa&style=flat-square';
+      var BASE_OFFSET = 246;
+      var ns = encodeURIComponent(location.hostname || 'simpendadisiji');
+      var key = 'visits';
+      var badge = document.getElementById('visitBadge');
+      var valueEl = document.getElementById('visitBadgeValue');
+
+      fetch('https://abacus.jasoncameron.dev/hit/' + ns + '/' + key)
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          valueEl.textContent = BASE_OFFSET + data.value;
+          badge.classList.add('ready');
+        })
+        .catch(function () {
+          // gagal memuat data real-time; sembunyikan badge daripada tampilkan angka salah
+        });
     })();
 
     // ── Password gate (penghalang ringan, bukan proteksi server-side) ──
