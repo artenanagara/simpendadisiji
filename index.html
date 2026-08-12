@@ -468,10 +468,154 @@
     footer strong {
       color: var(--text-mid);
     }
+
+    /* ════════════════════════════════
+       VISIT COUNTER (footer)
+    ════════════════════════════════ */
+    .visit-counter {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .visit-counter img {
+      height: 20px;
+    }
+
+    /* ════════════════════════════════
+       PASSWORD GATE OVERLAY
+    ════════════════════════════════ */
+    body.locked .page-container {
+      display: none;
+    }
+
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(150deg, var(--green-dark) 0%, var(--green) 60%, #1dbf6e 100%);
+    }
+
+    body.locked .auth-overlay {
+      display: flex;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 340px;
+      background: #fff;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 28px 24px;
+      text-align: center;
+      animation: fadeUp .4s ease both;
+    }
+
+    .auth-card img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      margin-bottom: 12px;
+    }
+
+    .auth-card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+
+    .auth-card p {
+      font-size: 11.5px;
+      color: var(--text-light);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 11px 14px;
+      font-size: 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      outline: none;
+      margin-bottom: 12px;
+      font-family: 'Inter', sans-serif;
+      transition: border-color .18s;
+    }
+
+    .auth-input:focus {
+      border-color: var(--green);
+    }
+
+    .auth-btn {
+      width: 100%;
+      padding: 11px 14px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      box-shadow: 0 3px 12px rgba(0, 120, 60, .30);
+      transition: transform .18s, box-shadow .18s;
+    }
+
+    .auth-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(0, 120, 60, .38);
+    }
+
+    .auth-error {
+      display: none;
+      font-size: 11.5px;
+      color: #d9534f;
+      margin-top: 10px;
+    }
+
+    .auth-error.show {
+      display: block;
+    }
+
+    .auth-card.shake {
+      animation: shake .35s;
+    }
+
+    @keyframes shake {
+
+      25%,
+      75% {
+        transform: translateX(-6px);
+      }
+
+      50% {
+        transform: translateX(6px);
+      }
+    }
   </style>
 </head>
 
 <body>
+
+  <!-- ════ PASSWORD GATE ════ -->
+  <!-- Ganti nilai PASSWORD di bagian <script> paling bawah untuk mengubah kata sandi. -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-card" id="authCard">
+      <img src="logo-dinkes.webp" alt="Dinkes" />
+      <h2>Akses Terbatas</h2>
+      <p>Masukkan kata sandi untuk membuka SIMPEN DADI SIJI.</p>
+      <form id="authForm" autocomplete="off">
+        <input class="auth-input" type="password" id="authInput" placeholder="Kata sandi" autofocus />
+        <button class="auth-btn" type="submit">Masuk</button>
+        <div class="auth-error" id="authError">Kata sandi salah, silakan coba lagi.</div>
+      </form>
+    </div>
+  </div>
 
   <div class="page-container">
 
@@ -629,11 +773,53 @@
         <strong>Dinas Kesehatan Daerah Kabupaten Blora</strong><br>
         Pencegahan dan Pengendalian Penyakit(P3M)<br>
         &copy; 2026
+        <div class="visit-counter">
+          <img id="visitCounterImg" alt="Jumlah kunjungan" />
+        </div>
       </footer>
 
     </div><!-- /wrapper -->
 
   </div><!-- /page-container -->
+
+  <script>
+    // ── Visit counter (hits.sh, mengikuti domain halaman ini otomatis) ──
+    (function () {
+      var key = location.hostname + location.pathname;
+      var img = document.getElementById('visitCounterImg');
+      img.src = 'https://hits.sh/' + key + '.svg?label=Kunjungan&color=4dbfaa&style=flat-square';
+    })();
+
+    // ── Password gate (penghalang ringan, bukan proteksi server-side) ──
+    (function () {
+      var PASSWORD = 'cegahdbdblora';
+      var SESSION_KEY = 'spds_unlocked';
+
+      if (sessionStorage.getItem(SESSION_KEY) === '1') return;
+
+      document.body.classList.add('locked');
+
+      var form = document.getElementById('authForm');
+      var input = document.getElementById('authInput');
+      var error = document.getElementById('authError');
+      var card = document.getElementById('authCard');
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (input.value === PASSWORD) {
+          sessionStorage.setItem(SESSION_KEY, '1');
+          document.body.classList.remove('locked');
+        } else {
+          error.classList.add('show');
+          card.classList.remove('shake');
+          void card.offsetWidth; // restart animasi
+          card.classList.add('shake');
+          input.value = '';
+          input.focus();
+        }
+      });
+    })();
+  </script>
 
 </body>
 
